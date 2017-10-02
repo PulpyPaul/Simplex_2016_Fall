@@ -11,11 +11,42 @@ Date: 2017/05
 #include "imgui\ImGuiObject.h"
 
 #include "MyMesh.h"
+#include <vector>
+
+using namespace std;
 
 class Application
 {
 	MyMesh* m_pMesh = nullptr;
+	vector<MyMesh*> meshVectors;
 	String m_sProgrammer = "Alberto Bobadilla - labigm@rit.edu";
+
+	// Constant z value for the cube pattern
+	float zValue = 0.0f;
+
+	// Array of all cube positions
+	vector3 translateVectors[46] = {
+
+		// Row 1 (bottom) 
+		vector3(3.0f, 0.0f, zValue), vector3(4.0f, 0.0f, zValue), vector3(6.0f, 0.0f, zValue), vector3(7.0f, 0.0f, zValue),
+		// Row 2
+		vector3(0.0f, 1.0f, zValue), vector3(2.0f, 1.0f, zValue), vector3(8.0f, 1.0f, zValue), vector3(10.0f, 1.0f, zValue),
+		// Row 3
+		vector3(0.0f, 2.0f, zValue), vector3(2.0f, 2.0f, zValue), vector3(3.0f, 2.0f, zValue), vector3(4.0f, 2.0f, zValue), vector3(5.0f, 2.0f, zValue), vector3(6.0f, 2.0f, zValue),
+		vector3(7.0f, 2.0f, zValue), vector3(8.0f, 2.0f, zValue), vector3(10.0f, 2.0f, zValue),
+		// Row 4
+		vector3(0.0f, 3.0f, zValue), vector3(1.0f, 3.0f, zValue), vector3(2.0f, 3.0f, zValue), vector3(3.0f, 3.0f, zValue), vector3(4.0f, 3.0f, zValue), vector3(5.0f, 3.0f, zValue),
+		vector3(6.0f, 3.0f, zValue), vector3(7.0f, 3.0f, zValue), vector3(8.0f, 3.0f, zValue), vector3(9.0f, 3.0f, zValue), vector3(10.0f, 3.0f, zValue),
+		// Row 5
+		vector3(1.0f, 4.0f, zValue), vector3(2.0f, 4.0f, zValue), vector3(4.0f, 4.0f, zValue), vector3(5.0f, 4.0f, zValue), vector3(6.0f, 4.0f, zValue), vector3(8.0f, 4.0f, zValue), vector3(9.0f, 4.0f, zValue),
+		// Row 6
+		vector3(2.0f, 5.0f, zValue), vector3(3.0f, 5.0f, zValue), vector3(4.0f, 5.0f, zValue), vector3(5.0f, 5.0f, zValue), vector3(6.0f, 5.0f, zValue), vector3(7.0f, 5.0f, zValue), vector3(8.0f, 5.0f, zValue),
+		// Row 7
+		vector3(3.0f, 6.0f, zValue), vector3(7.0f, 6.0f, zValue),
+		// Row 7
+		vector3(2.0f, 7.0f, zValue), vector3(8.0f, 7.0f, zValue)
+
+	};
 
 private:
 	static ImGuiObject gui; //GUI object
