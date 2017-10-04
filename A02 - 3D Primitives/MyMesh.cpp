@@ -276,7 +276,48 @@ void MyMesh::GenerateCone(float a_fRadius, float a_fHeight, int a_nSubdivisions,
 	Init();
 
 	// Replace this with your code
-	GenerateCube(a_fRadius * 2.0f, a_v3Color);
+	
+	// Holds all the points of the shape
+	std::vector<vector3> vectorPoints;
+	
+	// the top and base of the cone
+	vector3 top(0.0f, a_fHeight / 2.0f, 0.0f);
+	vector3 base(0.0f, -a_fHeight / 2.0f, 0.0f);
+
+	// conversions needed
+	float degrees = 360.0f / a_nSubdivisions;
+	float toRadians = PI / 180.0f;
+
+	// gets the vertex base points using unit circle calculations, adds to vector
+	// Formula : x = cos(360 / divisions * step * ToRadian) * radius scalar ----- y = height / 2 ------ z = sin( same x function)
+	for (int i = 0; i < a_nSubdivisions; i++) {
+		vectorPoints.push_back(vector3(cos((degrees * i) * toRadians) * a_fRadius, -a_fHeight / 2.0, sin((degrees * i) * toRadians) * a_fRadius));
+	}
+
+	// make tris of the base of the cone
+	for (int i = 0; i < a_nSubdivisions; i++) {
+		
+		// Makes sure the vector doesn't go out of range
+		if (i != a_nSubdivisions - 1) {
+
+			// Side triangle
+			AddTri(top, vectorPoints[i + 1], vectorPoints[i]);
+
+			// Bottom Triangle
+			AddTri(base, vectorPoints[i], vectorPoints[i + 1]);
+		}
+
+		// the last and first points of the vector
+		else {
+			
+			// Side triangle
+			AddTri(top, vectorPoints[0], vectorPoints[i]);
+
+			// Bottom triangle
+			AddTri(base, vectorPoints[i], vectorPoints[0]);
+		}
+	}
+
 	// -------------------------------
 
 	// Adding information about color
@@ -300,7 +341,59 @@ void MyMesh::GenerateCylinder(float a_fRadius, float a_fHeight, int a_nSubdivisi
 	Init();
 
 	// Replace this with your code
-	GenerateCube(a_fRadius * 2.0f, a_v3Color);
+
+	// Holds all the points of the shape
+	std::vector<vector3> base1Points;
+	std::vector<vector3> base2Points;
+
+	// the top and base of the cylinder
+	vector3 base1(0.0f, a_fHeight / 2.0f, 0.0f);
+	vector3 base2(0.0f, -a_fHeight / 2.0f, 0.0f);
+
+	// conversions needed
+	float degrees = 360.0f / a_nSubdivisions;
+	float toRadians = PI / 180.0f;
+
+	// gets the vertex points for base1
+	for (int i = 0; i < a_nSubdivisions; i++) {
+		base1Points.push_back(vector3(cos((degrees * i) * toRadians) * a_fRadius, a_fHeight / 2, sin((degrees * i) * toRadians) * a_fRadius));
+	}
+
+	// gets the vertex points for base2
+	for (int i = 0; i < a_nSubdivisions; i++) {
+		base2Points.push_back(vector3(cos((degrees * i) * toRadians) * a_fRadius, -a_fHeight / 2, sin((degrees * i) * toRadians) * a_fRadius));
+	}
+
+	// draws tris for base1 & base2
+	for (int i = 0; i < a_nSubdivisions; i++) {
+
+		// Makes sure the vector doesn't go out of range
+		if (i != a_nSubdivisions - 1) {
+
+			// base1 tri
+			AddTri(base1, base1Points[i + 1], base1Points[i]);
+
+			// side quad
+			AddQuad(base1Points[i], base1Points[i + 1], base2Points[i], base2Points[i + 1]);
+
+			//base2 tri
+			AddTri(base2, base2Points[i], base2Points[i + 1]);
+		}
+
+		// the last and first points of the vector
+		else {
+
+			// base1 tri
+			AddTri(base1, base1Points[0], base1Points[i]);
+
+			// side quad
+			AddQuad(base1Points[i], base1Points[0], base2Points[i], base2Points[0]);
+
+			//base2 tri
+			AddTri(base2, base2Points[i], base2Points[0]);
+		}
+	}
+
 	// -------------------------------
 
 	// Adding information about color
@@ -330,7 +423,69 @@ void MyMesh::GenerateTube(float a_fOuterRadius, float a_fInnerRadius, float a_fH
 	Init();
 
 	// Replace this with your code
-	GenerateCube(a_fOuterRadius * 2.0f, a_v3Color);
+
+	// Holds all the points of the shape
+	std::vector<vector3> base1InnerPoints;
+	std::vector<vector3> base1OuterPoints;
+	std::vector<vector3> base2InnerPoints;
+	std::vector<vector3> base2OuterPoints;
+
+	// the top and base of the tube
+	vector3 base1(0.0f, a_fHeight / 2.0f, 0.0f);
+	vector3 base2(0.0f, -a_fHeight / 2.0f, 0.0f);
+
+	// conversions needed
+	float degrees = 360.0f / a_nSubdivisions;
+	float toRadians = PI / 180.0f;
+
+	// gets the vertex points for base1
+	for (int i = 0; i < a_nSubdivisions; i++) {
+		base1InnerPoints.push_back(vector3(cos((degrees * i) * toRadians) * a_fInnerRadius, a_fHeight / 2, sin((degrees * i) * toRadians) * a_fInnerRadius));
+		base1OuterPoints.push_back(vector3(cos((degrees * i) * toRadians) * a_fOuterRadius, a_fHeight / 2, sin((degrees * i) * toRadians) * a_fOuterRadius));
+	}
+
+	// gets the vertex points for base2
+	for (int i = 0; i < a_nSubdivisions; i++) {
+		base2InnerPoints.push_back(vector3(cos((degrees * i) * toRadians) * a_fInnerRadius, -a_fHeight / 2, sin((degrees * i) * toRadians) * a_fInnerRadius));
+		base2OuterPoints.push_back(vector3(cos((degrees * i) * toRadians) * a_fOuterRadius, -a_fHeight / 2, sin((degrees * i) * toRadians) * a_fOuterRadius));
+	}
+
+	// draws the shapes
+	for (int i = 0; i < a_nSubdivisions; i++) {
+
+		// Makes sure the vector doesn't go out of range
+		if (i != a_nSubdivisions - 1) {
+
+			// base1 quads
+			AddQuad(base1OuterPoints[i + 1], base1OuterPoints[i], base1InnerPoints[i + 1], base1InnerPoints[i]);
+
+			// base2 quad
+			AddQuad(base2OuterPoints[i], base2OuterPoints[i + 1], base2InnerPoints[i], base2InnerPoints[i + 1]);
+
+			// outer quad
+			AddQuad(base1OuterPoints[i], base1OuterPoints[i + 1], base2OuterPoints[i], base2OuterPoints[i + 1]);
+
+			// inner quad
+			AddQuad(base1InnerPoints[i + 1], base1InnerPoints[i], base2InnerPoints[i + 1], base2InnerPoints[i]);
+		}
+
+		// the last and first points of the vector
+		else {
+
+			// base1 quads
+			AddQuad(base1OuterPoints[0], base1OuterPoints[i], base1InnerPoints[0], base1InnerPoints[i]);
+
+			// base2 quad
+			AddQuad(base2OuterPoints[i], base2OuterPoints[0], base2InnerPoints[i], base2InnerPoints[0]);
+
+			// outer quad
+			AddQuad(base1OuterPoints[i], base1OuterPoints[0], base2OuterPoints[i], base2OuterPoints[0]);
+
+			// inner quad
+			AddQuad(base1InnerPoints[0], base1InnerPoints[i], base2InnerPoints[0], base2InnerPoints[i]);
+		}
+	}
+	
 	// -------------------------------
 
 	// Adding information about color
@@ -387,7 +542,49 @@ void MyMesh::GenerateSphere(float a_fRadius, int a_nSubdivisions, vector3 a_v3Co
 	Init();
 
 	// Replace this with your code
-	GenerateCube(a_fRadius * 2.0f, a_v3Color);
+
+	// Represents the lines of latitude (phi angles)
+	for (int i = 0; i < a_nSubdivisions; i++)
+	{
+		// Gets an angle relative to the current latitude line
+		float phi1 = (2 * PI) / a_nSubdivisions * i;
+
+		// Gets the next adjacent angle on the same line
+		float phi2 = (2 * PI) / a_nSubdivisions * (i + 1);
+
+		//  Represents the lines of longitude (theta angles)
+		for (int j = 0; j < a_nSubdivisions; j++)
+		{
+			// Gets an angle relative to the current longitude line
+			float theta1 = PI / a_nSubdivisions * j;
+
+			// Gets the next adjacent angle
+			float theta2 = PI / a_nSubdivisions * (j + 1);
+
+			// Converts certesian coordinates from spherical coordinates ------- x = cos(phi) * sin(theta) ------- y = sin(phi) * sin(theta) -------- z = cos(theta)
+
+			// Bottom left
+			vector3 point1(cos(phi1) * sin(theta1), sin(phi1) * sin(theta1), cos(theta1));
+
+			// Bottom right
+			vector3 point2(cos(phi1) * sin(theta2), sin(phi1) * sin(theta2), cos(theta2));
+			
+			// Top left
+			vector3 point3(cos(phi2) * sin(theta1), sin(phi2) * sin(theta1), cos(theta1));
+			
+			// Top right
+			vector3 point4(cos(phi2) * sin(theta2), sin(phi2) * sin(theta2), cos(theta2));
+
+			// Scale all points by the radius
+			point1 *= a_fRadius;
+			point2 *= a_fRadius;
+			point3 *= a_fRadius;
+			point4 *= a_fRadius;
+
+			// Draws the quad
+			AddQuad(point1, point2, point3, point4);
+		}
+	}
 	// -------------------------------
 
 	// Adding information about color
