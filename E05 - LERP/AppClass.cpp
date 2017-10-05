@@ -53,22 +53,30 @@ void Application::Display(void)
 	static float fTimer = 0;	//store the new timer
 	static uint uClock = m_pSystem->GenClock(); //generate a new clock for that timer
 	fTimer += m_pSystem->GetDeltaTime(uClock); //get the delta time for that timer
-
-	//calculate the current position
-	vector3 v3CurrentPos;
-	
-
-
-
-
+		
 	//your code goes here
-	v3CurrentPos = vector3(0.0f, 0.0f, 0.0f);
+	
+	float totalTime = 1.0f;
+	
+	static int current = 0;
+	static int next = 1;
+
+	float percent = fTimer / totalTime;
+
+	if (next >= m_stopsList.size()) {
+		next = 0;
+	}
+
+	vector3 currentPosition = glm::lerp(m_stopsList[current], m_stopsList[next], percent);
+
+	if (fTimer >= totalTime) {
+		fTimer = 0;
+		current = next;
+		next++;
+	}
+	
 	//-------------------
-	
-
-
-	
-	matrix4 m4Model = glm::translate(v3CurrentPos);
+	matrix4 m4Model = glm::translate(IDENTITY_M4, currentPosition);
 	m_pModel->SetModelMatrix(m4Model);
 
 	m_pMeshMngr->Print("\nTimer: ");//Add a line on top
