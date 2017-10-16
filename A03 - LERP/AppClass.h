@@ -15,6 +15,7 @@ Date: 2017/05
 
 #include "ControllerConfiguration.h"
 #include "imgui\ImGuiObject.h"
+#include <list>
 
 class Application
 {
@@ -28,6 +29,10 @@ private:
 	uint m_uRenderCallCount = 0; //count of render calls per frame
 	uint m_uControllerCount = 0; //count of controllers connected
 
+	std::vector<std::vector<vector3>> paths;
+	std::vector<int> nextPoints;
+	std::vector<int> currentPoints;
+		
 	vector3 m_v3Mouse = vector3(); //position of the mouse in the window
 	bool m_bFPC = false;// First Person Camera flag
 	bool m_bArcBall = false;// Arcball flag
