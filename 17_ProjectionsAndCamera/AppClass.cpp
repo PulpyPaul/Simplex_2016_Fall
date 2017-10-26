@@ -53,15 +53,16 @@ void Application::Display(void)
 	//draw a skybox
 	m_pMeshMngr->AddSkyboxToRenderList();
 
-	static float fPos = 0.0f;
-	m_pCamera->SetPosition(vector3(fPos, 0.0f, 10.0f));
-	m_pCamera->SetTarget(vector3(fPos, 0.0f, 9.0f));
-	fPos -= 0.01f;
+	vector3 v3LookingAt = m_v3CameraPosition;
+	v3LookingAt.z -= 1.0f;
+	float fRatio = static_cast<float>(m_pSystem->GetWindowWidth()) / static_cast<float>(m_pSystem->GetWindowHeight());
 
-	//draw the primitive
-	//m_pMesh->Render(m_pCamera->GetProjectionMatrix(), m_pCamera->GetViewMatrix(), ToMatrix4(m_qArcBall));
-	//m_pMesh->Render(m_pCamera, ToMatrix4(m_qArcBall));
-	m_pMesh2->Render(m_pCamera, glm::translate(vector3(0.0f, 0.0f, -5.0f)));
+	//matrix4 m4Projection = glm::perspective(90.0f, m_pSystem->GetWindowRatio(), 0.01f, 1000.0f);//m_pCameraMngr->GetProjectionMatrix(); // How you are looking at the screen
+	matrix4 m4Projection = glm::ortho(-10.0f, 10.0f, -20.0f, 20.0f, 0.01f, 1000.0f);
+	matrix4 m4View = glm::lookAt(vector3(0, 0, 30) + m_v3CameraPosition, vector3(0, 0, 0) + v3LookingAt, vector3(0, 1, 0)); //m_pCameraMngr->GetViewMatrix(); // Where you are looking at from
+	matrix4 m4Model = ToMatrix4(m_qArcBall);
+
+	m_pMesh->Render(m4Projection, m4View, m4Model);
 
 	//render list call
 	m_uRenderCallCount = m_pMeshMngr->Render();
