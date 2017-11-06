@@ -4,6 +4,10 @@ using namespace Simplex;
 //Accessors
 void Simplex::MyCamera::SetPosition(vector3 a_v3Position) { m_v3Position = a_v3Position; }
 
+vector3 Simplex::MyCamera::GetPosition(void) { return m_v3Position; }
+
+vector3 Simplex::MyCamera::GetUp(void) { return m_v3Up; }
+
 void Simplex::MyCamera::SetTarget(vector3 a_v3Target) { m_v3Target = a_v3Target; }
 
 void Simplex::MyCamera::SetUp(vector3 a_v3Up) { m_v3Up = a_v3Up; }
@@ -135,8 +139,15 @@ void Simplex::MyCamera::SetPositionTargetAndUp(vector3 a_v3Position, vector3 a_v
 
 void Simplex::MyCamera::CalculateViewMatrix(void)
 {
-	//Calculate the look at
-	m_m4View = glm::lookAt(m_v3Position, m_v3Target, m_v3Up);
+	// Gets a rotation matrix based on the camera's quaternion
+	matrix4 rotate = glm::mat4_cast(cameraQuat);
+
+	// Gets a matrix based on the position of the camera
+	matrix4 translate = matrix4(1.0f);
+	translate = glm::translate(translate, -m_v3Position);
+	
+	// Updates the view matrix
+	m_m4View = rotate * translate;
 }
 
 void Simplex::MyCamera::CalculateProjectionMatrix(void)
@@ -153,4 +164,45 @@ void Simplex::MyCamera::CalculateProjectionMatrix(void)
 										m_v2Vertical.x, m_v2Vertical.y, //vertical
 										m_v2NearFar.x, m_v2NearFar.y); //near and far
 	}
+}
+
+void Simplex::MyCamera::ChangePitch(float degrees)
+{
+	// Stores a quaternion with the new pitch change
+	updateQuat = glm::quat(vector3(degrees, 0.0f, 0.0f));
+
+	// Calculates and normalizes the camera's quaternion
+	cameraQuat = updateQuat * cameraQuat;
+	cameraQuat = glm::normalize(cameraQuat);
+	
+	// Stores the pitch in radians
+	pitchRadian += (degrees * (PI / 180));
+}
+
+void Simplex::MyCamera::ChangeYaw(float degrees)
+{
+	// Stores a quaternion with the new pitch change
+	updateQuat = glm::quat(vector3(0.0f, degrees, 0.0f));
+
+	// Calculates and normalizes the camera's quaternion
+	cameraQuat = updateQuat * cameraQuat;
+	cameraQuat = glm::normalize(cameraQuat);
+
+	// Stores the yaw in radians
+	yawRadian += (degrees * (PI / 180));
+}
+
+float Simplex::MyCamera::GetPitch(void) 
+{
+	return pitchRadian;
+}
+
+float Simplex::MyCamera::GetYaw(void)
+{
+	return yawRadian;
+}
+
+glm::quat Simplex::MyCamera::GetOrientation(void)
+{
+	return cameraQuat;
 }

@@ -12,6 +12,9 @@ namespace Simplex
 
 class MyCamera
 {
+	glm::quat updateQuat = glm::quat(glm::vec3(0.0f, 0.0f, 0.0f));
+	glm::quat cameraQuat = glm::quat(glm::vec3(0.0f, 0.0f, 0.0f));
+
 	vector3 m_v3Position = vector3(0.0f, 0.0f, 10.0f); //Where my camera is located
 	vector3 m_v3Target = vector3(0.0f, 0.0f, 0.0f); //What I'm looking at
 	vector3 m_v3Up = vector3(0.0f, 1.0f, 0.0f); //What is up
@@ -20,6 +23,9 @@ class MyCamera
 
 	float m_fFOV = 45.0f; //Field of View
 
+	float pitchRadian = 0.0f;
+	float yawRadian = 0.0f;
+	
 	vector2 m_v2Resolution = vector2(1280.0f, 720.0f); //Resolution of the window
 	vector2 m_v2NearFar = vector2(0.001f, 1000.0f); //Near and Far planes
 
@@ -211,6 +217,16 @@ public:
 	OUTPUT: ---
 	*/
 	void CalculateProjectionMatrix(void);
+
+	void ChangePitch(float degrees);
+
+	void ChangeYaw(float degrees);
+
+	float GetPitch(void);
+
+	float GetYaw(void);
+
+	glm::quat GetOrientation(void);
 };
 
 } //namespace Simplex

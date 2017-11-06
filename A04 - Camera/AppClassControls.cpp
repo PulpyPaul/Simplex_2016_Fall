@@ -369,6 +369,8 @@ void Application::CameraRotation(float a_fSpeed)
 		fAngleX += fDeltaMouse * a_fSpeed;
 	}
 	//Change the Yaw and the Pitch of the camera
+	m_pCamera->ChangeYaw(-fAngleY * 0.1f);
+	m_pCamera->ChangePitch(fAngleX * 0.1f);
 	SetCursorPos(CenterX, CenterY);//Position the mouse in the center
 }
 //Keyboard
@@ -379,12 +381,50 @@ void Application::ProcessKeyboard(void)
 	for discreet on/off use ProcessKeyboardPressed/Released
 	*/
 #pragma region Camera Position
+	// gets the current position of the camera
+	vector3 currentPos = m_pCamera->GetPosition();
 	float fSpeed = 0.1f;
+	
 	float fMultiplier = sf::Keyboard::isKeyPressed(sf::Keyboard::LShift) ||
 		sf::Keyboard::isKeyPressed(sf::Keyboard::RShift);
 
 	if (fMultiplier)
 		fSpeed *= 5.0f;
+
+	// Gets the current orientation of the camera
+	glm::quat directionQuat = m_pCamera->GetOrientation();
+
+	// converts the orientation into a direction vector
+	vector3 direction = vector3(
+		2.0f * (directionQuat.x * directionQuat.z + directionQuat.w * directionQuat.y),			// x * y + w * y
+		2.0f * (directionQuat.y * directionQuat.z - directionQuat.w * directionQuat.x),			// y * z - w * y
+		1.0f - 2.0f * (directionQuat.x * directionQuat.x + directionQuat.y * directionQuat.y)	// x^2 * y^2
+	);
+
+	// Normalizes the vector
+	direction = glm::normalize(direction);
+
+	// Gets right vector to update left/right
+	vector3 rightVector = glm::normalize(glm::cross(m_pCamera->GetUp(), direction));
+
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::W)) {
+		currentPos.z -= direction.z * fSpeed;
+	}
+
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::A)) {
+		currentPos.x -= rightVector.x * fSpeed;
+	}
+
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::S)) {
+		currentPos.x +=  direction.x * fSpeed;
+	}
+
+	if (sf::Keyboard::isKeyPressed(sf::Keyboard::D)) {
+		currentPos.z += rightVector.z * fSpeed;
+	}
+
+	// sets the new position
+	m_pCamera->SetPosition(currentPos);
 #pragma endregion
 }
 //Joystick

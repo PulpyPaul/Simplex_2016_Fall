@@ -11,6 +11,7 @@ Date: 2017/05
 #include "imgui\ImGuiObject.h"
 
 #include "MyMeshManager.h"
+#include "BasicX\Camera\Camera.h"
 namespace Simplex
 {
 
@@ -19,6 +20,7 @@ class Application
 	MyCamera* m_pCamera = nullptr; //Camera class
 	MyMeshManager* m_pMyMeshMngr = nullptr; //My Mesh Manager
 	String m_sProgrammer = "Alberto Bobadilla - labigm@rit.edu"; //Programmer
+		
 private:
 	static ImGuiObject gui; //GUI object
 
