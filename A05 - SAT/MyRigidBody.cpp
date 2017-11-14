@@ -287,9 +287,38 @@ uint MyRigidBody::SAT(MyRigidBody* const a_pOther)
 	Simplex that might help you [eSATResults] feel free to use it.
 	(eSATResults::SAT_NONE has a value of 0)
 	*/
-	
-	
-	
+
+	// Holds refereence to normal axes
+	vector<vector3> normals;
+
+	// Holds reference to local axes
+	vector4 local_xAxis(1, 0, 0, 1);
+	vector4 local_yAxis(0, 1, 0, 1);
+	vector4 local_zAxis(0, 0, 1, 1);
+
+	// Gets axes in global coordinates of object A
+	vector3 A_xAxis(local_xAxis * m_m4ToWorld);
+	vector3 A_yAxis(local_yAxis * m_m4ToWorld);
+	vector3 A_zAxis(local_zAxis * m_m4ToWorld);
+
+	// Gets axes in global coordinates of object A
+	vector3 B_xAxis(local_xAxis * a_pOther->GetModelMatrix());
+	vector3 B_yAxis(local_yAxis * a_pOther->GetModelMatrix());
+	vector3 B_zAxis(local_zAxis * a_pOther->GetModelMatrix());
+
+	// Project the min/max points of object A onto the x axis of A
+	float A_min_projection = glm::dot(m_v3MinG, A_xAxis);
+	float A_max_projection = glm::dot(m_v3MaxG, A_xAxis);
+
+	// Project the min/max points of object B onto the x axis of A
+	float B_min_projection = glm::dot(a_pOther->m_v3MinG, A_xAxis);
+	float B_max_projection = glm::dot(a_pOther->m_v3MaxG, A_xAxis);
+
+	// Checks projection intervals for overlap
+	if (A_max_projection < B_min_projection || B_max_projection < A_min_projection) {
+		return 1;
+	}
+
 	return 0;
 	//there is no axis test that separates this two objects
 	//return eSATResults::SAT_NONE;
