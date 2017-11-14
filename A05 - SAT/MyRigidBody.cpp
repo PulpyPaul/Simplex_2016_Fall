@@ -1,5 +1,6 @@
 #include "MyRigidBody.h"
 using namespace Simplex;
+using namespace std;
 //Allocation
 void MyRigidBody::Init(void)
 {
@@ -286,7 +287,10 @@ uint MyRigidBody::SAT(MyRigidBody* const a_pOther)
 	Simplex that might help you [eSATResults] feel free to use it.
 	(eSATResults::SAT_NONE has a value of 0)
 	*/
-
+	
+	
+	
+	return 0;
 	//there is no axis test that separates this two objects
-	return eSATResults::SAT_NONE;
+	//return eSATResults::SAT_NONE;
 }
