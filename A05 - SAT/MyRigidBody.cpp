@@ -289,7 +289,7 @@ uint MyRigidBody::SAT(MyRigidBody* const a_pOther)
 	*/
 
 	// Holds refereence to normal axes
-	vector<vector3> normals;
+	vector<vector3> testAxes;
 
 	// Holds reference to local axes
 	vector4 local_xAxis(1, 0, 0, 1);
@@ -305,20 +305,47 @@ uint MyRigidBody::SAT(MyRigidBody* const a_pOther)
 	vector3 B_xAxis(local_xAxis * a_pOther->GetModelMatrix());
 	vector3 B_yAxis(local_yAxis * a_pOther->GetModelMatrix());
 	vector3 B_zAxis(local_zAxis * a_pOther->GetModelMatrix());
+	
+	// Adds axes of object A to the vector
+	testAxes.push_back(A_xAxis);
+	testAxes.push_back(A_yAxis);
+	testAxes.push_back(A_zAxis);
 
-	// Project the min/max points of object A onto the x axis of A
-	float A_min_projection = glm::dot(m_v3MinG, A_xAxis);
-	float A_max_projection = glm::dot(m_v3MaxG, A_xAxis);
+	// Adds axes of object B to the vector
+	testAxes.push_back(B_xAxis);
+	//testAxes.push_back(B_yAxis);
+	testAxes.push_back(B_zAxis);
 
-	// Project the min/max points of object B onto the x axis of A
-	float B_min_projection = glm::dot(a_pOther->m_v3MinG, A_xAxis);
-	float B_max_projection = glm::dot(a_pOther->m_v3MaxG, A_xAxis);
+	// Adds all normal axes to vector of test axes
+	testAxes.push_back(vector3(glm::cross(A_xAxis, B_xAxis)));	// A_x cross B_x
+	testAxes.push_back(vector3(glm::cross(A_xAxis, B_yAxis)));	// A_x cross B_y
+	//testAxes.push_back(vector3(glm::cross(A_xAxis, B_zAxis)));	// A_x cross B_z
+	//testAxes.push_back(vector3(glm::cross(A_yAxis, B_xAxis)));	// A_y cross B_x
+	//testAxes.push_back(vector3(glm::cross(A_yAxis, B_yAxis)));	// A_y cross B_y
+	//testAxes.push_back(vector3(glm::cross(A_yAxis, B_zAxis)));	// A_y cross B_z
+	//testAxes.push_back(vector3(glm::cross(A_zAxis, B_xAxis)));	// A_z cross B_x
+	//testAxes.push_back(vector3(glm::cross(A_zAxis, B_yAxis)));	// A_z cross B_y
+	testAxes.push_back(vector3(glm::cross(A_zAxis, B_zAxis)));	// A_z cross B_z
 
-	// Checks projection intervals for overlap
-	if (A_max_projection < B_min_projection || B_max_projection < A_min_projection) {
-		return 1;
+	
+	// Loops through all test axes to project on
+	for (int i = 0; i < testAxes.size(); i++) {
+
+		// Project the min/max points of object A onto the test axis
+		float A_min_projection = glm::dot(m_v3MinG, testAxes[i]);
+		float A_max_projection = glm::dot(m_v3MaxG, testAxes[i]);
+
+		// Project the min/max points of object B onto the test axis
+		float B_min_projection = glm::dot(a_pOther->m_v3MinG, testAxes[i]);
+		float B_max_projection = glm::dot(a_pOther->m_v3MaxG, testAxes[i]);
+
+		// Checks projection intervals for overlap
+		if (A_max_projection < B_min_projection || B_max_projection < A_min_projection) {
+			return 1;
+		}
 	}
-
+	
+	
 	return 0;
 	//there is no axis test that separates this two objects
 	//return eSATResults::SAT_NONE;
