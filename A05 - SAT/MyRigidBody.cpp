@@ -288,8 +288,8 @@ uint MyRigidBody::SAT(MyRigidBody* const a_pOther)
 	(eSATResults::SAT_NONE has a value of 0)
 	*/
 
-	// Holds refereence to normal axes
-	vector<vector3> testAxes;
+	vector<vector3> a_Axes;
+	vector<vector3> b_Axes;
 
 	// Holds reference to local axes
 	vector4 local_xAxis(1, 0, 0, 1);
@@ -305,47 +305,148 @@ uint MyRigidBody::SAT(MyRigidBody* const a_pOther)
 	vector3 B_xAxis(local_xAxis * a_pOther->GetModelMatrix());
 	vector3 B_yAxis(local_yAxis * a_pOther->GetModelMatrix());
 	vector3 B_zAxis(local_zAxis * a_pOther->GetModelMatrix());
+
+	// Adds axes to vectors
+	a_Axes.push_back(A_xAxis);
+	a_Axes.push_back(A_yAxis);
+	a_Axes.push_back(A_zAxis);
 	
-	// Adds axes of object A to the vector
-	testAxes.push_back(A_xAxis);
-	testAxes.push_back(A_yAxis);
-	testAxes.push_back(A_zAxis);
+	b_Axes.push_back(B_xAxis);
+	b_Axes.push_back(B_yAxis);
+	b_Axes.push_back(B_zAxis);
 
-	// Adds axes of object B to the vector
-	testAxes.push_back(B_xAxis);
-	//testAxes.push_back(B_yAxis);
-	testAxes.push_back(B_zAxis);
+	// Testing values
+	float ra;
+	float rb;
 
-	// Adds all normal axes to vector of test axes
-	testAxes.push_back(vector3(glm::cross(A_xAxis, B_xAxis)));	// A_x cross B_x
-	testAxes.push_back(vector3(glm::cross(A_xAxis, B_yAxis)));	// A_x cross B_y
-	//testAxes.push_back(vector3(glm::cross(A_xAxis, B_zAxis)));	// A_x cross B_z
-	//testAxes.push_back(vector3(glm::cross(A_yAxis, B_xAxis)));	// A_y cross B_x
-	//testAxes.push_back(vector3(glm::cross(A_yAxis, B_yAxis)));	// A_y cross B_y
-	//testAxes.push_back(vector3(glm::cross(A_yAxis, B_zAxis)));	// A_y cross B_z
-	//testAxes.push_back(vector3(glm::cross(A_zAxis, B_xAxis)));	// A_z cross B_x
-	//testAxes.push_back(vector3(glm::cross(A_zAxis, B_yAxis)));	// A_z cross B_y
-	testAxes.push_back(vector3(glm::cross(A_zAxis, B_zAxis)));	// A_z cross B_z
+	// Rotation matrix & absolute value of rotation matrix
+	matrix3 R, AbsR;
 
-	
-	// Loops through all test axes to project on
-	for (int i = 0; i < testAxes.size(); i++) {
+	// Get rotation matrix
+	for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < 3; j++) {
+			R[i][j] = glm::dot(a_Axes[i], b_Axes[j]);
+		}
+	}
 
-		// Project the min/max points of object A onto the test axis
-		float A_min_projection = glm::dot(m_v3MinG, testAxes[i]);
-		float A_max_projection = glm::dot(m_v3MaxG, testAxes[i]);
+	// Get translation vector
+	vector3 t(a_pOther->GetCenterGlobal() - GetCenterGlobal());
 
-		// Project the min/max points of object B onto the test axis
-		float B_min_projection = glm::dot(a_pOther->m_v3MinG, testAxes[i]);
-		float B_max_projection = glm::dot(a_pOther->m_v3MaxG, testAxes[i]);
+	// Bring translation vector into A's local space
+	t = vector3(glm::dot(t, a_Axes[0]), glm::dot(t, a_Axes[1]), glm::dot(t, a_Axes[2]));
 
-		// Checks projection intervals for overlap
-		if (A_max_projection < B_min_projection || B_max_projection < A_min_projection) {
-			return 1;
+	// stores the absolute value of R into AbsR
+	for (int i = 0; i < 3; i++) {
+		for (int j = 0; j < 3; j++) {
+			AbsR[i][j] = glm::abs(R[i][j]) + DBL_EPSILON;
 		}
 	}
 	
+	// Calculate projection and test the xAxis of object A
+	ra = m_v3HalfWidth.x;
+	rb = (a_pOther->GetHalfWidth().x * AbsR[0][0]) + (a_pOther->GetHalfWidth().y * AbsR[0][1]) + (a_pOther->GetHalfWidth().z * AbsR[0][2]);
+	if (glm::abs(t.x) > ra + rb) {
+		return 1;
+	}
+
+	// Calculate projection and test the yAxis of object A
+	ra = m_v3HalfWidth.y;
+	rb = (a_pOther->GetHalfWidth().x * AbsR[1][0]) + (a_pOther->GetHalfWidth().y * AbsR[1][1]) + (a_pOther->GetHalfWidth().z * AbsR[1][2]);
+	if (glm::abs(t.y) > ra + rb) {
+		return 1;
+	}
 	
+	// Calculate projection and test the zAxis of object A
+	ra = m_v3HalfWidth.z;
+	rb = (a_pOther->GetHalfWidth().x * AbsR[2][0]) + (a_pOther->GetHalfWidth().y * AbsR[2][1]) + (a_pOther->GetHalfWidth().z * AbsR[2][2]);
+	if (glm::abs(t.z) > ra + rb) {
+		return 1;
+	}
+
+	// Calculate projection and test the xAxis of object B
+	ra = (GetHalfWidth().x * AbsR[0][0]) + (GetHalfWidth().y * AbsR[1][0]) + (GetHalfWidth().z * AbsR[2][0]);
+	rb = a_pOther->GetHalfWidth().x;
+	if (glm::abs(t.x * R[0][0] + t.y * R[1][0] + t.z * R[2][0]) > ra + rb) {
+		return 1;
+	}
+
+	// Calculate projection and test the yAxis of object B
+	ra = (GetHalfWidth().x * AbsR[0][1]) + (GetHalfWidth().y * AbsR[1][1]) + (GetHalfWidth().z * AbsR[2][1]);
+	rb = a_pOther->GetHalfWidth().y;
+	if (glm::abs(t.x * R[0][1] + t.y * R[1][1] + t.z * R[2][1]) > ra + rb) {
+		return 1;
+	}
+
+	// Calculate projection and test the zAxis of object B
+	ra = (GetHalfWidth().x * AbsR[0][2]) + (GetHalfWidth().y * AbsR[1][2]) + (GetHalfWidth().z * AbsR[2][2]);
+	rb = a_pOther->GetHalfWidth().z;
+	if (glm::abs(t.x * R[0][2] + t.y * R[1][2] + t.z * R[2][2]) > ra + rb) {
+		return 1;
+	}
+
+	// Calculate projection and test the axis of A0 cross B0
+	ra = GetHalfWidth().y * AbsR[2][0] + GetHalfWidth().z * AbsR[1][0];
+	rb = a_pOther->GetHalfWidth().y * AbsR[0][2] + a_pOther->GetHalfWidth().z * AbsR[0][1];
+	if (glm::abs(t.z * R[1][0] - t.y * R[2][0]) > ra + rb) {
+		return 1;
+	}
+
+	// Calculate projection and test the axis of A0 cross B1
+	ra = GetHalfWidth().y * AbsR[2][1] + GetHalfWidth().z * AbsR[1][1];
+	rb = a_pOther->GetHalfWidth().x * AbsR[0][2] + a_pOther->GetHalfWidth().z * AbsR[0][0];
+	if (glm::abs(t.z * R[1][1] - t.y * R[2][1]) > ra + rb) {
+		return 1;
+	}
+
+	// Calculate projection and test the axis of A0 cross B2
+	ra = GetHalfWidth().y * AbsR[2][2] + GetHalfWidth().z * AbsR[1][2];
+	rb = a_pOther->GetHalfWidth().x * AbsR[0][1] + a_pOther->GetHalfWidth().y * AbsR[0][0];
+	if (glm::abs(t.z * R[1][2] - t.y * R[2][2]) > ra + rb) {
+		return 1;
+	}
+
+	// Calculate projection and test the axis of A1 cross B0
+	ra = GetHalfWidth().x * AbsR[2][0] + GetHalfWidth().z * AbsR[0][0];
+	rb = a_pOther->GetHalfWidth().y * AbsR[1][2] + a_pOther->GetHalfWidth().z * AbsR[1][1];
+	if (glm::abs(t.x * R[2][0] - t.z * R[0][0]) > ra + rb) {
+		return 1;
+	}
+	
+	// Calculate projection and test the axis of A1 cross B1
+	ra = GetHalfWidth().x * AbsR[2][1] + GetHalfWidth().z * AbsR[0][1];
+	rb = a_pOther->GetHalfWidth().x * AbsR[1][2] + a_pOther->GetHalfWidth().z * AbsR[1][1];
+	if (glm::abs(t.x * R[2][1] - t.z * R[0][1]) > ra + rb) {
+		return 1;
+	}
+
+	// Calculate projection and test the axis of A1 cross B2
+	ra = GetHalfWidth().x * AbsR[2][2] + GetHalfWidth().z * AbsR[0][2];
+	rb = a_pOther->GetHalfWidth().x * AbsR[1][1] + a_pOther->GetHalfWidth().y * AbsR[1][0];
+	if (glm::abs(t.x * R[2][2] - t.z * R[0][2]) > ra + rb) {
+		return 1;
+	}
+
+	// Calculate projection and test the axis of A2 cross B0
+	ra = GetHalfWidth().x * AbsR[1][0] + GetHalfWidth().y * AbsR[0][0];
+	rb = a_pOther->GetHalfWidth().y * AbsR[2][2] + a_pOther->GetHalfWidth().z * AbsR[2][1];
+	if (glm::abs(t.y * R[0][0] - t.x * R[1][0]) > ra + rb) {
+		return 1;
+	}
+
+	// Calculate projection and test the axis of A2 cross B1
+	ra = GetHalfWidth().x * AbsR[1][1] + GetHalfWidth().y * AbsR[0][1];
+	rb = a_pOther->GetHalfWidth().x * AbsR[2][2] + a_pOther->GetHalfWidth().z * AbsR[2][0];
+	if (glm::abs(t.y * R[0][1] - t.x * R[1][1]) > ra + rb) {
+		return 1;
+	}
+
+	// Calculate projection and test the axis of A2 cross B2
+	ra = GetHalfWidth().x * AbsR[1][2] + GetHalfWidth().y * AbsR[0][2];
+	rb = a_pOther->GetHalfWidth().x * AbsR[2][1] + a_pOther->GetHalfWidth().y * AbsR[2][0];
+	if (glm::abs(t.y * R[0][2] - t.x * R[1][2]) > ra + rb) {
+		return 1;
+	}
+
 	return 0;
 	//there is no axis test that separates this two objects
 	//return eSATResults::SAT_NONE;
