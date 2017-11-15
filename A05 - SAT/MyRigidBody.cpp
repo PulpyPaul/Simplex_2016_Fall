@@ -288,23 +288,24 @@ uint MyRigidBody::SAT(MyRigidBody* const a_pOther)
 	(eSATResults::SAT_NONE has a value of 0)
 	*/
 
+	// Holds reference to the axes of each object
 	vector<vector3> a_Axes;
 	vector<vector3> b_Axes;
 
 	// Holds reference to local axes
-	vector4 local_xAxis(1, 0, 0, 1);
-	vector4 local_yAxis(0, 1, 0, 1);
-	vector4 local_zAxis(0, 0, 1, 1);
+	vector4 local_xAxis(1, 0, 0, 0);
+	vector4 local_yAxis(0, 1, 0, 0);
+	vector4 local_zAxis(0, 0, 1, 0);
 
 	// Gets axes in global coordinates of object A
-	vector3 A_xAxis(local_xAxis * m_m4ToWorld);
-	vector3 A_yAxis(local_yAxis * m_m4ToWorld);
-	vector3 A_zAxis(local_zAxis * m_m4ToWorld);
+	vector3 A_xAxis(m_m4ToWorld * local_xAxis);
+	vector3 A_yAxis(m_m4ToWorld * local_yAxis);
+	vector3 A_zAxis(m_m4ToWorld * local_zAxis);
 
 	// Gets axes in global coordinates of object A
-	vector3 B_xAxis(local_xAxis * a_pOther->GetModelMatrix());
-	vector3 B_yAxis(local_yAxis * a_pOther->GetModelMatrix());
-	vector3 B_zAxis(local_zAxis * a_pOther->GetModelMatrix());
+	vector3 B_xAxis(a_pOther->GetModelMatrix() * local_xAxis);
+	vector3 B_yAxis(a_pOther->GetModelMatrix() * local_yAxis);
+	vector3 B_zAxis(a_pOther->GetModelMatrix() * local_zAxis);
 
 	// Adds axes to vectors
 	a_Axes.push_back(A_xAxis);
@@ -338,7 +339,7 @@ uint MyRigidBody::SAT(MyRigidBody* const a_pOther)
 	// stores the absolute value of R into AbsR
 	for (int i = 0; i < 3; i++) {
 		for (int j = 0; j < 3; j++) {
-			AbsR[i][j] = glm::abs(R[i][j]) + DBL_EPSILON;
+			AbsR[i][j] = glm::abs(R[i][j]) + FLT_EPSILON;
 		}
 	}
 	
@@ -414,7 +415,7 @@ uint MyRigidBody::SAT(MyRigidBody* const a_pOther)
 	
 	// Calculate projection and test the axis of A1 cross B1
 	ra = GetHalfWidth().x * AbsR[2][1] + GetHalfWidth().z * AbsR[0][1];
-	rb = a_pOther->GetHalfWidth().x * AbsR[1][2] + a_pOther->GetHalfWidth().z * AbsR[1][1];
+	rb = a_pOther->GetHalfWidth().x * AbsR[1][2] + a_pOther->GetHalfWidth().z * AbsR[1][0];
 	if (glm::abs(t.x * R[2][1] - t.z * R[0][1]) > ra + rb) {
 		return 1;
 	}
@@ -448,6 +449,4 @@ uint MyRigidBody::SAT(MyRigidBody* const a_pOther)
 	}
 
 	return 0;
-	//there is no axis test that separates this two objects
-	//return eSATResults::SAT_NONE;
 }
