@@ -227,7 +227,7 @@ bool Simplex::Octant::IsColliding(uint a_uRBIndex)
 
 void Simplex::Octant::Display(uint a_nIndex, vector3 a_v3Color)
 {
-	// Displays all octants if the index is equal to or greater than the count
+	// Displays all octants if the index is equal to or greater than the count, otherwise just one of the children
 	if (a_nIndex >= m_uOctantCount) {
 		DisplayLeafs(a_v3Color);
 	}

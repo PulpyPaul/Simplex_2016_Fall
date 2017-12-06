@@ -113,6 +113,7 @@ void Application::ProcessKeyReleased(sf::Event a_event)
 		break;
 	case sf::Keyboard::PageUp:
 		++m_uOctantID;
+
 		if (m_uOctantID >= m_pRoot->GetOctantCount())
 			m_uOctantID = -1;
 		
